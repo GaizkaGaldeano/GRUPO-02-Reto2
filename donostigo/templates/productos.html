@@ -6,74 +6,6 @@
   <title>DonostiGo — Servicios</title>
   <link rel="stylesheet" href="/donostigo/css/styles.css">
   <link rel="icon" type="image/png" href="/donostigo/img optimizadas/taxi.webp">
-
-  <style>
-    /* --- TUS ESTILOS ORIGINALES --- */
-    .btn-fav {
-      cursor: pointer !important;
-      position: relative;
-      z-index: 10;
-      background: #ffffff;
-      border: 2px solid #ff4444;
-      border-radius: 50%;
-      width: 45px;
-      height: 45px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      transition: transform 0.2s ease;
-      margin-top: 10px;
-    }
-    .btn-fav:hover { transform: scale(1.1); }
-    .icon-heart { pointer-events: none; font-size: 1.5rem; }
-    .service-card { position: relative; }
-
-    /* --- NUEVOS ESTILOS PARA LOS FILTROS --- */
-    .filter-container {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 15px;
-      margin-bottom: 30px;
-      justify-content: center;
-      padding: 0 15px;
-    }
-
-    #searchInput, #categoryFilter {
-      padding: 12px 20px;
-      border: 1px solid #ddd;
-      border-radius: 25px;
-      font-size: 1rem;
-      outline: none;
-      transition: all 0.3s ease;
-    }
-
-    #searchInput {
-      flex: 1;
-      min-width: 250px;
-      max-width: 500px;
-    }
-
-    #categoryFilter {
-      cursor: pointer;
-      background-color: #fff;
-    }
-
-    #searchInput:focus, #categoryFilter:focus {
-      border-color: #ff4444;
-      box-shadow: 0 0 8px rgba(255, 68, 68, 0.2);
-    }
-
-    /* Mensaje de "No encontrado" */
-    .no-results {
-      text-align: center;
-      width: 100%;
-      padding: 30px;
-      font-size: 1.2rem;
-      color: #666;
-      display: none;
-      grid-column: 1 / -1; /* Para que ocupe todo el ancho si usas grid */
-    }
-  </style>
 </head>
 <body>
   <a class="skip-link" href="#main">Saltar al contenido</a>
@@ -181,20 +113,7 @@
       </article>
     </section>
 
-    <div id="ai-chat-button">💬</div>
-    <div id="ai-chat-window">
-      <div id="ai-chat-header">
-        <span>Asistente DonostiGo</span>
-        <button id="ai-chat-close">&times;</button>
-      </div>
-      <div id="ai-chat-messages">
-        <div class="ai-message bot">👋 ¡Hola! Soy tu asistente DonostiGo. ¿En qué puedo ayudarte?</div>
-      </div>
-      <div id="ai-chat-input-area">
-        <input type="text" id="ai-chat-input" placeholder="Escribe tu mensaje..." />
-        <button id="ai-chat-send">➤</button>
-      </div>
-    </div>
+    
   </main>
 
   <footer class="footer-dark">

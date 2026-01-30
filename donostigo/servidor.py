@@ -1,13 +1,13 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from google import genai
+import ollama # <--- Cambiamos Google por Ollama
 
 app = Flask(__name__)
 CORS(app)
 
 # CONFIGURACIÓN
-# Quitamos las http_options para que Google elija la mejor ruta solo
-client = genai.Client(api_key="AIzaSyCk0oEZu080r6UvrjHzej_ht16dDLhfrJU")
+# Definimos el modelo que usará Ollama (llama3 es el más recomendado)
+MODELO_IA = "llama3"
 
 INSTRUCCIONES = """Eres el asistente de Taxis Donostia. 
 Paradas: Avenida 45, Avenida Madrid 9, Virgen del Carmen 11, Jose María Salaberria, 
@@ -28,20 +28,27 @@ def chat():
 
         print(f"👤 Usuario pregunta: {pregunta}")
         
-        # PROBAMOS CON EL NOMBRE DE MODELO MÁS COMPATIBLE
-        prompt_completo = f"{INSTRUCCIONES}\n\nPregunta del cliente: {pregunta}"
-
-        response = client.models.generate_content(
-            model="gemini-1.5-flash-001", # <--- Este nombre es específico y suele saltarse el error 404
-            contents=prompt_completo
-        )
+        # Con Ollama usamos el sistema de mensajes para separar instrucciones de la pregunta
+        response = ollama.chat(model=MODELO_IA, messages=[
+            {
+                'role': 'system',
+                'content': INSTRUCCIONES,
+            },
+            {
+                'role': 'user',
+                'content': pregunta,
+            },
+        ])
         
-        print(f"✅ Respuesta recibida de Google")
-        return jsonify({"respuesta": response.text})
+        respuesta_texto = response['message']['content']
+        
+        print(f"✅ Respuesta recibida de Ollama ({MODELO_IA})")
+        return jsonify({"respuesta": respuesta_texto})
 
     except Exception as e:
-        print(f"\n❌ ERROR EN EL SERVIDOR: {str(e)}\n")
+        print(f"\n❌ ERROR EN EL SERVIDOR OLLAMA: {str(e)}\n")
         return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
+    # Mantenemos host 0.0.0.0 y puerto 5001 para que sea accesible desde el servidor de Nazaret
     app.run(host='0.0.0.0', port=5001, debug=True)

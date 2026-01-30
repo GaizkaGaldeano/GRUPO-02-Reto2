@@ -1,5 +1,6 @@
 # pago_stripe/app.py
 import os
+import ollama
 from flask import Flask, request, jsonify, render_template
 from dotenv import load_dotenv
 import stripe
@@ -41,7 +42,7 @@ app.secret_key = os.getenv("SECRET_KEY", "dev-secret-key")
 # Fíjate que después de 'root:' NO hay nada antes del '@'
 # Usamos 127.0.0.1 que es la dirección física de tu ordenador
 # Cambia esto en tu app.py
-app.config["SQLALCHEMY_DATABASE_URI"] = "mysql+pymysql://donostigo:donostigo@52.201.74.171:3306/donostigo"
+app.config["SQLALCHEMY_DATABASE_URI"] = "mysql+pymysql://donostigo:donostigo@174.129.28.83:3306/donostigo"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 
@@ -322,7 +323,23 @@ def api_valoracion():
 @app.route("/api/ia", methods=["POST"])
 def chat_ia():
     data = request.get_json()
-    return jsonify({"reply": f"¡Hola! Has preguntado: {data.get('message')}. Pronto podré ayudarte mejor."})
+    mensaje_usuario = data.get('message')
+
+    try:
+        # Llamada a Ollama (usaremos llama3 por defecto)
+        response = ollama.chat(model='llama3', messages=[
+            {
+                'role': 'user',
+                'content': mensaje_usuario,
+            },
+        ])
+        
+        respuesta_ia = response['message']['content']
+        return jsonify({"reply": respuesta_ia})
+
+    except Exception as e:
+        print(f"Error con Ollama: {e}")
+        return jsonify({"reply": "Lo siento, mi sistema de IA está reiniciando."}), 500
 
 
 # --------------------------------------------------
@@ -330,10 +347,9 @@ def chat_ia():
 # --------------------------------------------------
 if __name__ == "__main__":
     with app.app_context():
-        db.create_all()  # Crea la base de datos si no existe
+        db.create_all()
 
-
-    app.run(debug=True)
-
+    # host="0.0.0.0" permite que el servidor de Nazaret sea accesible
+    app.run(host="0.0.0.0", port=5000, debug=True)
 
 
