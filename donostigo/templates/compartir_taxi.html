@@ -1,0 +1,320 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Compartir Taxi — DonostiGo</title>
+
+  <link rel="stylesheet" href="/donostigo/css/styles.css">
+  <link rel="icon" type="image/png" href="/donostigo/img optimizadas/taxi.webp">
+
+
+  <!-- Leaflet -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+</head>
+
+<body>
+
+<header class="site-header">
+  <div class="container header-inner">
+    <a class="brand" href="/donostigo/templates/index.html">
+           <img
+            src="/donostigo/img optimizadas/logo.webp"
+            alt="Logo de DonostiGo"
+            class="logo"
+            loading="lazy"
+            width="120"
+            height="40"
+          >
+      <span class="brand-title">DonostiGo</span>
+    </a>
+
+    <nav class="main-nav">
+      <!-- ✅ BOTÓN DEL MENÚ MÓVIL -->
+      <button id="navToggle" class="nav-toggle" aria-controls="primaryNav" aria-expanded="false">
+        <span class="sr-only">Abrir menú</span>
+        ☰
+      </button>
+
+      <!-- ✅ MENU -->
+      <ul id="primaryNav" class="nav-list" data-visible="false">
+        <li><a href="/donostigo/templates/index.html">Inicio</a></li>
+        <li><a href="/donostigo/templates/productos.html" class="active">Servicios</a></li>
+        <li><a href="/donostigo/templates/contacto.html">Contacto</a></li>
+        <li><a href="/donostigo/templates/reserva.html">Reservar</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+
+<main class="site-main">
+  <section class="container reserva-section">
+
+    <h1>Compartir Taxi</h1>
+    <p>Encuentra personas que hagan un trayecto similar para compartir taxi y reducir el coste.</p>
+
+    <form id="formCompartir" class="reserve-form">
+
+      <label for="origen">Parada de origen</label>
+      <select id="origen" required>
+        <option value="">Selecciona una parada...</option>
+      </select>
+
+      <label for="destinoInput">Dirección de destino</label>
+      <input id="destinoInput" autocomplete="off" type="text" placeholder="Escribe una dirección..." required>
+      <ul id="suggestions"></ul>
+
+      <label for="hora">Hora de salida</label>
+      <input id="hora" type="datetime-local" required>
+
+      <label>
+        <input type="checkbox" id="compartirCheck" checked>
+        Deseo compartir el taxi
+      </label>
+
+      <button type="submit" class="btn">Buscar taxis compartidos</button>
+    </form>
+
+    <div id="coincidencias">
+      <h3>Viajes compatibles encontrados</h3>
+      <div id="coincidenciasLista"></div>
+    </div>
+
+    <div id="reservaMsg"></div>
+    <div id="map"></div>
+
+  </section>
+</main>
+
+<script>
+  /* MAPA */
+  const map = L.map('map').setView([43.3183, -1.9812], 14);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
+
+  const taxiStops = [
+    { lat: 43.318617, lng: -1.984218, nombre: 'Avenida 45' },
+    { lat: 43.304764, lng: -1.976858, nombre: 'Avenida Madrid 9' },
+    { lat: 43.316631, lng: -1.971802, nombre: 'Virgen del Carmen, 11' },
+    { lat: 43.302887, lng: -1.980093, nombre: 'Jose María Salaberria' },
+    { lat: 43.304733, lng: -2.005509, nombre: 'Estornes - Igara' },
+    { lat: 43.313539, lng: -2.005670, nombre: 'Trento - Ondarreta' },
+    { lat: 43.313186, lng: -1.981895, nombre: 'Easo Pza' },
+    { lat: 43.307977, lng: -1.979132, nombre: 'Autobus Geltokia' },
+    { lat: 43.317805, lng: -1.977029, nombre: 'Iparraldeko Geltokia' },
+    { lat: 43.320163, lng: -1.981069, nombre: 'Idiakez' },
+    { lat: 43.316592, lng: -1.984558, nombre: 'Manterola' },
+    { lat: 43.315001, lng: -2.000539, nombre: 'Satrustegi' },
+    { lat: 43.325927, lng: -1.971102, nombre: 'Nafarroa Hiribidea' },
+    { lat: 43.293306, lng: -1.968666, nombre: 'Aranzazu Ospitalea' },
+    { lat: 43.321765, lng: -1.984776, nombre: 'Boulevard 25' },
+    { lat: 43.322945, lng: -1.977150, nombre: 'Colón Ibilbidea 11' },
+    { lat: 43.322387, lng: -1.973532, nombre: 'Aita Larroka' },
+    { lat: 43.305182, lng: -1.974122, nombre: 'Toribio Alzaga' },
+    { lat: 43.309527, lng: -1.991572, nombre: 'Izaburu kalea' },
+    { lat: 43.322684, lng: -1.941992, nombre: 'Julio Urkixo' }
+  ];
+
+  const origenSelect = document.getElementById("origen");
+
+  const taxiIcon = L.icon({
+    iconUrl: '/donostigo/img optimizadas/taxi.webp',
+    iconSize: [40, 40],
+    iconAnchor: [20, 40],
+    popupAnchor: [0, -35]
+  });
+
+  taxiStops.forEach(stop => {
+    origenSelect.appendChild(new Option(stop.nombre, stop.nombre));
+    L.marker([stop.lat, stop.lng], { icon: taxiIcon }).addTo(map).bindPopup(stop.nombre);
+  });
+
+  /* AUTOCOMPLETADO */
+  let destinoCoords = null;
+  const destinoInput = document.getElementById("destinoInput");
+  const suggestionsBox = document.getElementById("suggestions");
+
+  destinoInput.addEventListener("input", async () => {
+    const query = destinoInput.value.trim();
+    suggestionsBox.innerHTML = "";
+    destinoCoords = null;
+    if (query.length < 3) return;
+
+    const bbox = "-2.05,43.26,-1.90,43.35";
+    const url = `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=5&bounded=1&viewbox=${bbox}&city=Donostia-San%20Sebastián&q=${encodeURIComponent(query)}`;
+
+    const res = await fetch(url);
+    const data = await res.json();
+
+    const filtrados = data.filter(i =>
+      i.display_name.includes("Donostia") ||
+      i.display_name.includes("San Sebastián")
+    );
+
+    filtrados.forEach(item => {
+      const li = document.createElement("li");
+      li.textContent = item.display_name;
+      li.onclick = () => {
+        destinoInput.value = item.display_name;
+        destinoCoords = [item.lat, item.lon];
+        map.setView(destinoCoords, 17);
+        suggestionsBox.innerHTML = "";
+      };
+      suggestionsBox.appendChild(li);
+    });
+  });
+
+  /* CLICK MAPA */
+  map.on("click", async (e) => {
+    const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${e.latlng.lat}&lon=${e.latlng.lng}&addressdetails=1`;
+    const res = await fetch(url);
+    const data = await res.json();
+
+    if (!data.display_name.includes("Donostia") &&
+        !data.display_name.includes("San Sebastián")) {
+      alert("Selecciona una dirección dentro de Donostia.");
+      return;
+    }
+
+    destinoInput.value = data.display_name;
+    destinoCoords = [e.latlng.lat, e.latlng.lng];
+    L.marker(destinoCoords).addTo(map).bindPopup("Destino").openPopup();
+  });
+
+  /* COMPARTIR */
+  function guardarViaje(viaje) {
+    const lista = JSON.parse(localStorage.getItem("viajesCompartidos") || "[]");
+    lista.push(viaje);
+    localStorage.setItem("viajesCompartidos", JSON.stringify(lista));
+  }
+
+  function buscarViajesCompatibles(destino, hora) {
+    const lista = JSON.parse(localStorage.getItem("viajesCompartidos") || "[]");
+    return lista.filter(v => {
+      const mismaDireccion = v.destino.includes(destino.split(",")[0]);
+      const mismaZona = v.destino.includes(destino.split(" ")[0]);
+      const difMin = Math.abs(new Date(v.hora) - new Date(hora)) / 60000;
+      return (mismaDireccion || mismaZona) && difMin <= 20;
+    });
+  }
+
+  const form = document.getElementById("formCompartir");
+  const coincidenciasDiv = document.getElementById("coincidencias");
+  const coincidenciasLista = document.getElementById("coincidenciasLista");
+  const msg = document.getElementById("reservaMsg");
+
+  form.addEventListener("submit", e => {
+    e.preventDefault();
+
+    const origen = origenSelect.value;
+    const destino = destinoInput.value;
+    const hora = document.getElementById("hora").value;
+
+    if (!origen || !destino || !hora || !destinoCoords) {
+      msg.textContent = "⚠️ Completa todos los campos correctamente.";
+      msg.classList.add("error");
+      return;
+    }
+
+    if (new Date(hora) < new Date()) {
+      msg.textContent = "⚠️ No puedes seleccionar una fecha pasada.";
+      msg.classList.add("error");
+      return;
+    }
+
+    msg.textContent = "";
+    coincidenciasLista.innerHTML = "";
+
+    const matches = buscarViajesCompatibles(destino, hora);
+
+    if (matches.length > 0) {
+      coincidenciasDiv.style.display = "block";
+      matches.forEach(v => {
+        const div = document.createElement("div");
+        div.className = "coincidencia-item";
+        div.innerHTML = `
+            <strong>Origen:</strong> ${v.origen}<br>
+            <strong>Destino:</strong> ${v.destino}<br>
+            <strong>Hora:</strong> ${new Date(v.hora).toLocaleString()}<br>
+            <button>Unirme a este taxi</button>`;
+        coincidenciasLista.appendChild(div);
+      });
+    } else {
+      coincidenciasDiv.style.display = "none";
+      guardarViaje({ origen, destino, destinoCoords, hora });
+      msg.textContent = "✅ No se encontraron viajes compatibles. Tu viaje se ha publicado para compartir.";
+      msg.classList.remove("error");
+    }
+  });
+</script>
+
+
+<footer class="footer-dark">
+  <div class="footer-container">
+    <div class="footer-col">
+      <h3 class="footer-logo">DonostiGo</h3>
+      <p>Soluciones de taxi en Donostia — transparencia y seguridad.</p>
+    </div>
+
+    <div class="footer-col">
+      <ul>
+        <li><a href="#">Servicios</a></li>
+        <li><a href="#">Precios</a></li>
+        <li><a href="#">Reservas</a></li>
+      </ul>
+    </div>
+
+    <div class="footer-col">
+      <ul>
+        <li><a href="#">Soporte</a></li>
+        <li><a href="#">Centro de ayuda</a></li>
+        <li><a href="/donostigo/pdf/política_privacidad.pdf" target="_blank">Política de privacidad</a></li>
+      </ul>
+    </div>
+
+    <div class="footer-col">
+      <ul>
+        <li><a href="#">Sobre nosotros</a></li>
+        <li><a href="#">Contacto</a></li>
+        <li><a href="#">Afiliados</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <hr>
+
+  <div class="footer-social">
+    <a href="#" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+    <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+    <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+    <a href="#" aria-label="Google"><i class="fab fa-google"></i></a>
+  </div>
+
+  <p class="footer-copy">
+    © <span id="year"></span> DonostiGo. Todos los derechos reservados.
+  </p>
+</footer>
+
+<script>
+  document.getElementById("year").textContent = new Date().getFullYear();
+</script>
+
+<!-- ✅ SCRIPT CORRECTO DEL MENÚ MÓVIL -->
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const navToggle = document.getElementById("navToggle");
+  const navList = document.getElementById("primaryNav");
+
+  if (navToggle && navList) {
+    navToggle.addEventListener("click", () => {
+      const visible = navList.dataset.visible === "true";
+      navList.dataset.visible = visible ? "false" : "true";
+      navToggle.setAttribute("aria-expanded", !visible);
+    });
+  }
+});
+</script>
+
+</body>
+</html>

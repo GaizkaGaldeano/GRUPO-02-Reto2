@@ -1,0 +1,352 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Reserva Accesible — DonostiGo</title>
+
+  <link rel="stylesheet" href="/donostigo/css/styles.css">
+  <link rel="icon" type="image/png" href="/donostigo/img optimizadas/taxi.webp">
+
+
+  <!-- Leaflet -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <!-- Estilos mínimos por si faltan en tu CSS -->
+  <style>
+    #map { width: 100%; height: 400px; border-radius: 10px; margin-top: 20px; }
+    #suggestions { list-style: none; position: absolute; background: white; border: 1px solid #ccc; z-index: 9999; width: 90%; max-height: 150px; overflow-y: auto; padding: 0; border-radius: 8px; }
+    #suggestions li { padding: 10px; cursor: pointer; border-bottom: 1px solid #eee; }
+    #suggestions li:hover { background: #f0f0f0; }
+  </style>
+</head>
+
+<body>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="index.html">
+           <img
+            src="/donostigo/img optimizadas/logo.webp"
+            alt="Logo de DonostiGo"
+            class="logo"
+            loading="lazy"
+            width="120"
+            height="40"
+          >
+        <span class="brand-title">DonostiGo</span>
+      </a>
+      <nav class="main-nav">
+        <ul class="nav-list">
+          <li><a href="/donostigo/templates/index.html">Inicio</a></li>
+          <li><a href="/donostigo/templates/productos.html" class="active">Servicios</a></li>
+          <li><a href="/donostigo/templates/contacto.html">Contacto</a></li>
+          <li><a href="/donostigo/templates/reserva.html">Reservar</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main class="site-main">
+    <section class="container reserva-section">
+      
+      <h1 class="section-title">Reserva Accesible</h1>
+      <p>Selecciona tu origen, dirección de destino y el tipo de taxi accesible que necesitas.</p>
+
+      <form id="formReservaAcc" class="reserve-form" novalidate>
+
+        <!-- ORIGEN -->
+        <label for="origen">Parada de origen</label>
+        <select id="origen" required>
+          <option value="">Selecciona una parada...</option>
+        </select>
+
+        <!-- DESTINO -->
+        <label for="destinoInput">Dirección de destino</label>
+        <input id="destinoInput" type="text" placeholder="Escribe una dirección..." autocomplete="off" required />
+        <ul id="suggestions"></ul>
+
+        <!-- FECHA -->
+        <label for="hora">Hora de recogida</label>
+        <input id="hora" type="datetime-local" required />
+
+        <!-- ✅ NUEVO CAMPO: Taxi accesible -->
+        <label for="tipoTaxi">Tipo de taxi accesible</label>
+        <select id="tipoTaxi" required>
+          <option value="">Selecciona un modelo...</option>
+          <option value="rampa">Taxi con rampa manual</option>
+          <option value="rampa-electrica">Taxi con rampa eléctrica</option>
+          <option value="silla-electrica">Adaptado para silla eléctrica</option>
+          <option value="pmr-multiple">Vehículo adaptado multiusuario</option>
+          <option value="amplio">Taxi amplio (movilidad reducida ligera)</option>
+        </select>
+
+        <button type="submit" class="btn">Confirmar reserva accesible</button>
+      </form>
+
+      <div id="reservaMsg" class="reserve-msg"></div>
+
+      <div id="map"></div>
+
+    </section>
+  </main>
+
+  <script>
+    /* ========== MAPA ========== */
+    const map = L.map('map').setView([43.3183, -1.9812], 14);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
+
+    const origenSelect = document.getElementById("origen");
+    const destinoInput = document.getElementById("destinoInput");
+    const suggestionsBox = document.getElementById("suggestions");
+    const tipoTaxi = document.getElementById("tipoTaxi");
+
+    let destinoCoords = null;
+
+    /* ========== PARADAS (mismas que en tu reserva normal) ========== */
+    const taxiStops = [
+      { lat: 43.318617, lng: -1.984218, nombre: 'Avenida 45' },
+      { lat: 43.304764, lng: -1.976858, nombre: 'Avenida Madrid 9' },
+      { lat: 43.316631, lng: -1.971802, nombre: 'Virgen del Carmen, 11' },
+      { lat: 43.302887, lng: -1.980093, nombre: 'Jose María Salaberria' },
+      { lat: 43.304733, lng: -2.005509, nombre: 'Estornes - Igara' },
+      { lat: 43.313539, lng: -2.005670, nombre: 'Trento - Ondarreta' },
+      { lat: 43.313186, lng: -1.981895, nombre: 'Easo Pza' },
+      { lat: 43.307977, lng: -1.979132, nombre: 'Autobus Geltokia' },
+      { lat: 43.317805, lng: -1.977029, nombre: 'Iparraldeko Geltokia' },
+      { lat: 43.320163, lng: -1.981069, nombre: 'Idiakez' },
+      { lat: 43.316592, lng: -1.984558, nombre: 'Manterola' },
+      { lat: 43.315001, lng: -2.000539, nombre: 'Satrustegi' },
+      { lat: 43.325927, lng: -1.971102, nombre: 'Nafarroa Hiribidea' },
+      { lat: 43.293306, lng: -1.968666, nombre: 'Aranzazu Ospitalea' },
+      { lat: 43.321765, lng: -1.984776, nombre: 'Boulevard 25' },
+      { lat: 43.322945, lng: -1.977150, nombre: 'Colón Ibilbidea 11' },
+      { lat: 43.322387, lng: -1.973532, nombre: 'Aita Larroka' },
+      { lat: 43.305182, lng: -1.974122, nombre: 'Toribio Alzaga' },
+      { lat: 43.309527, lng: -1.991572, nombre: 'Izaburu kalea' },
+      { lat: 43.322684, lng: -1.941992, nombre: 'Julio Urkixo' }
+    ];
+
+   /* ICONO ORIGINAL DEL TAXI */
+const taxiIcon = L.icon({
+  iconUrl: '/donostigo/img optimizadas/taxi.webp',
+  iconSize: [40, 40],
+  iconAnchor: [20, 40],
+  popupAnchor: [0, -35]
+});
+
+/* MARCADORES DE PARADAS USANDO TU ICONO */
+taxiStops.forEach(stop => {
+  const option = new Option(stop.nombre, stop.nombre);
+  origenSelect.appendChild(option);
+
+  L.marker([stop.lat, stop.lng], { icon: taxiIcon })
+    .addTo(map)
+    .bindPopup(stop.nombre);
+});
+
+
+    /* ========== AUTOCOMPLETADO SOLO DONOSTI ========== */
+    destinoInput.addEventListener("input", async () => {
+      const query = destinoInput.value.trim();
+      suggestionsBox.innerHTML = "";
+      destinoCoords = null;
+
+      if (query.length < 3) return;
+
+      const bbox = "-2.05,43.26,-1.90,43.35";
+
+      const url =
+        `https://nominatim.openstreetmap.org/search?format=json` +
+        `&addressdetails=1&limit=5&bounded=1&viewbox=${bbox}` +
+        `&city=Donostia-San%20Sebastián&q=${encodeURIComponent(query)}`;
+
+      const res = await fetch(url, { headers: { "Accept-Language": "es" } });
+      const data = await res.json();
+
+      const filtrados = data.filter(item =>
+        item.display_name.includes("Donostia") ||
+        item.display_name.includes("San Sebastián")
+      );
+
+      filtrados.forEach(item => {
+        const li = document.createElement("li");
+        li.textContent = item.display_name;
+        li.onclick = () => {
+          destinoInput.value = item.display_name;
+          destinoCoords = [item.lat, item.lon];
+          map.setView(destinoCoords, 17);
+          suggestionsBox.innerHTML = "";
+        };
+        suggestionsBox.appendChild(li);
+      });
+    });
+
+    /* ========== CLICK EN MAPA SOLO DONOSTI ========== */
+    map.on("click", async (e) => {
+      const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${e.latlng.lat}&lon=${e.latlng.lng}&addressdetails=1`;
+      const res = await fetch(url);
+      const data = await res.json();
+
+      if (!data.display_name.includes("Donostia") &&
+          !data.display_name.includes("San Sebastián")) {
+        alert("Solo puedes seleccionar direcciones dentro de Donostia / San Sebastián.");
+        return;
+      }
+
+      destinoInput.value = data.display_name;
+      destinoCoords = [e.latlng.lat, e.latlng.lng];
+      L.marker(destinoCoords).addTo(map).bindPopup("Destino").openPopup();
+    });
+
+    /* ========== FORMULARIO ========== */
+    document.getElementById("formReservaAcc").addEventListener("submit", (e) => {
+      e.preventDefault();
+
+      const origen = origenSelect.value;
+      const destino = destinoInput.value;
+      const hora = document.getElementById("hora").value;
+      const taxi = tipoTaxi.value;
+      const msg = document.getElementById("reservaMsg");
+
+      if (!origen || !destino || !hora || !taxi || !destinoCoords) {
+        msg.textContent = "⚠️ Completa todos los campos correctamente.";
+        msg.classList.add("error");
+        return;
+      }
+
+      const fecha = new Date(hora);
+      if (fecha < new Date()) {
+        msg.textContent = "⚠️ No puedes reservar en una fecha pasada.";
+        msg.classList.add("error");
+        return;
+      }
+
+      msg.classList.remove("error");
+      msg.textContent = `✅ Reserva accesible confirmada:
+      Desde "${origen}"
+      Hasta "${destino}"
+      Taxi: ${taxi}
+      Fecha: ${fecha.toLocaleString()}`;
+    });
+
+  </script>
+
+  <!-- FOOTER -->
+  <footer class="footer-dark">
+    <div class="footer-container">
+      <div class="footer-col">
+        <h3 class="footer-logo">DonostiGo</h3>
+        <p>Soluciones de taxi en Donostia — transparencia y seguridad.</p>
+      </div>
+      <div class="footer-col">
+        <ul>
+          <li><a href="#">Servicios</a></li>
+          <li><a href="#">Precios</a></li>
+          <li><a href="#">Reservas</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <ul>
+          <li><a href="#">Soporte</a></li>
+          <li><a href="#">Centro de ayuda</a></li>
+          <li><a href="/donostigo/pdf/política_privacidad.pdf" target="_blank">Política de privacidad</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <ul>
+          <li><a href="#">Sobre nosotros</a></li>
+          <li><a href="#">Contacto</a></li>
+          <li><a href="#">Afiliados</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <hr>
+
+    <div class="footer-social">
+      <a href="#" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+      <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+      <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+      <a href="#" aria-label="Google"><i class="fab fa-google"></i></a>
+    </div>
+
+    <p class="footer-copy">
+      © <span id="year"></span> DonostiGo. Todos los derechos reservados.
+    </p>
+  </footer>
+
+  <!-- SCRIPT -->
+  <script>
+    document.getElementById("year").textContent = new Date().getFullYear();
+
+    // Menú accesible
+    const navToggle = document.getElementById('navToggleRegister');
+    const navList = document.getElementById('primaryNavRegister');
+    navToggle.addEventListener('click', () => {
+      const visible = navList.dataset.visible === 'true';
+      navList.dataset.visible = !visible;
+      navToggle.setAttribute('aria-expanded', !visible);
+    });
+
+    // Cambiar entre pestañas
+    const tabs = document.querySelectorAll('.tab');
+    const forms = document.querySelectorAll('.auth-form');
+
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        tabs.forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        const target = tab.dataset.target;
+        forms.forEach(f => f.classList.remove('active'));
+        document.getElementById(target).classList.add('active');
+      });
+    });
+
+    // Validación formularios
+    const registerForm = document.getElementById('registerForm');
+    const registerMsg = document.getElementById('registerMsg');
+    const loginForm = document.getElementById('loginForm');
+    const loginMsg = document.getElementById('loginMsg');
+
+    registerForm.addEventListener('submit', e => {
+      e.preventDefault();
+      if(!registerForm.checkValidity()) {
+        registerMsg.textContent = 'Por favor, completa todos los campos correctamente.';
+        registerMsg.style.color = '#ff7b7b';
+        return;
+      }
+      registerMsg.textContent = '¡Registro exitoso! Ya puedes iniciar sesión.';
+      registerMsg.style.color = '#62ff9c';
+      registerForm.reset();
+    });
+
+    loginForm.addEventListener('submit', e => {
+      e.preventDefault();
+      if(!loginForm.checkValidity()) {
+        loginMsg.textContent = 'Por favor, completa todos los campos correctamente.';
+        loginMsg.style.color = '#ff7b7b';
+        return;
+      }
+      loginMsg.textContent = '¡Inicio de sesión exitoso!';
+      loginMsg.style.color = '#62ff9c';
+      loginForm.reset();
+    });
+  </script>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const navToggle = document.getElementById("navToggle");
+  const navList = document.getElementById("primaryNav");
+
+  if (navToggle && navList) {
+    navToggle.addEventListener("click", () => {
+      const visible = navList.dataset.visible === "true";
+      navList.dataset.visible = visible ? "false" : "true";
+      navToggle.setAttribute("aria-expanded", !visible);
+    });
+  }
+});
+</script>
+
+</body>
+</html>

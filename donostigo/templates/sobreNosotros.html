@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>DonostiGo — Sobre nosotros</title>
+  <link rel="stylesheet" href="/donostigo/css/styles.css">
+  <link rel="icon" type="image/png" href="/donostigo/img optimizadas/taxi.webp">
+
+
+</head>
+<body class="sobre-nosotros">
+  <header class="site-header" role="banner">
+    <div class="header-inner container">
+      <a class="brand" href="index.html" aria-label="DonostiGo, página principal">
+            <img
+            src="/donostigo/img optimizadas/logo.webp"
+            alt="Logo de DonostiGo"
+            class="logo"
+            loading="lazy"
+            width="120"
+            height="40"
+          >
+        <span class="brand-title">DonostiGo</span>
+      </a>
+      <nav class="main-nav">
+      <!-- ✅ BOTÓN DEL MENÚ MÓVIL -->
+      <button id="navToggle" class="nav-toggle" aria-controls="primaryNav" aria-expanded="false">
+        <span class="sr-only">Abrir menú</span>
+        ☰
+      </button>
+
+      <!-- ✅ MENU -->
+      <ul id="primaryNav" class="nav-list" data-visible="false">
+        <li><a href="/donostigo/templates/index.html">Inicio</a></li>
+        <li><a href="/donostigo/templates/productos.html" class="active">Servicios</a></li>
+        <li><a href="/donostigo/templates/contacto.html">Contacto</a></li>
+        <li><a href="/donostigo/templates/reserva.html">Reservar</a></li>
+      </ul>
+    </nav>
+    </div>
+  </header>
+
+<section class="about-intro">
+  <div class="intro-overlay"></div>
+  <div class="container">
+    <h1 class="section-title">Sobre nosotros</h1>
+    <p class="section-subtitle">Conoce la historia, misión y el equipo detrás de DonostiGo.</p>
+  </div>
+</section>
+
+    <!-- HISTORIA -->
+    <section class="about-section">
+      <div class="about-content">
+        <div class="text">
+          <h2>Nuestra historia</h2>
+          <p>
+            DonostiGo nació de la idea de tres estudiantes del Centro Nazaret que querían mejorar la manera en que los usuarios reservan taxis en Donostia.
+          </p>
+          <p>
+            Inspirados por la rapidez y simplicidad de las apps modernas, creamos una solución <strong>transparente, segura y fácil de usar</strong> para la comunidad.
+          </p>
+        </div>
+        <div class="image">
+        <img
+        src="/donostigo/img optimizadas/naza.webp"
+        alt="Nuestra historia"
+        loading="lazy"
+        width="400"
+        height="250"
+        decoding="async"
+        >
+
+        </div>
+      </div>
+    </section>
+
+
+    <!-- MISIÓN Y VISIÓN -->
+    <section class="about-section">
+      <div class="about-content">
+        <div class="text">
+          <h2>Misión y visión</h2>
+          <p>
+            Nuestra <strong>misión</strong> es simplificar la reserva de taxis en Donostia, garantizando seguridad, rapidez y comodidad.
+          </p>
+          <p>
+            Nuestra <strong>visión</strong> es convertirnos en la app de referencia en movilidad urbana local.
+          </p>
+        </div>
+        <div class="image">
+          <img
+          src="/donostigo/img optimizadas/mision.webp"
+          alt="Misión y visión de DonostiGo"
+          loading="lazy"
+          width="400"
+          height="250"
+          decoding="async"
+        />
+
+        </div>
+      </div>
+    </section>
+
+   <!-- SECCIÓN EQUIPO -->
+<section class="team-section fade-in">
+  <div class="team-grid">
+    <!-- UXUE -->
+    <div class="team-card">
+      <img
+        src="/donostigo/img optimizadas/uxue.webp"
+        alt="UXUE, equipo DonostiGo"
+        loading="lazy"
+        width="400"
+        height="250"
+        decoding="async"
+      />
+
+      <h3>UXUE, 24 años</h3>
+      <p>Se encarga de la arquitectura y la lógica de DonostiGo, asegurando que la aplicación sea funcional y fácil de usar. Le apasiona crear soluciones eficientes y mejorar la experiencia de los usuarios.</p>
+    </div>
+
+    <!-- GAIZKA -->
+    <div class="team-card">
+        <img
+          src="/donostigo/img optimizadas/gaizka.webp"
+          alt="GAIZKA, equipo DonostiGo"
+          loading="lazy"
+          width="400"
+          height="250"
+          decoding="async"
+        />
+
+      <h3>GAIZKA, 20 años</h3>
+      <p> Se centra en el frontend y en que la aplicación sea atractiva e intuitiva. Combina creatividad y código para que DonostiGo sea fácil y agradable de usar.</p>
+    </div>
+  </div>
+</section>
+<!-- Botón flotante de chat con IA -->
+<div id="ai-chat-button">
+  💬
+</div>
+
+<!-- Ventana emergente del chat -->
+<div id="ai-chat-window">
+  <div id="ai-chat-header">
+    <span>Asistente DonostiGo</span>
+    <button id="ai-chat-close">&times;</button>
+  </div>
+  <div id="ai-chat-messages">
+    <div class="ai-message bot">👋 ¡Hola! Soy tu asistente DonostiGo. ¿En qué puedo ayudarte?</div>
+  </div>
+  <div id="ai-chat-input-area">
+    <input type="text" id="ai-chat-input" placeholder="Escribe tu mensaje..." />
+    <button id="ai-chat-send">➤</button>
+  </div>
+</div>
+
+  </main>   
+  
+    <!-- FOOTER -->
+
+  <footer class="footer-dark">
+    <div class="footer-container">
+      <div class="footer-col">
+        <h3 class="footer-logo">DonostiGo</h3>
+        <p>Soluciones de taxi en Donostia — transparencia y seguridad.</p>
+      </div>
+      <div class="footer-col">
+        <ul>
+          <li><a href="#">Servicios</a></li>
+          <li><a href="#">Precios</a></li>
+          <li><a href="#">Reservas</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <ul>
+          <li><a href="#">Soporte</a></li>
+          <li><a href="#">Centro de ayuda</a></li>
+          <li><a href="/donostigo/pdf/política_privacidad.pdf" target="_blank">Política de privacidad</a></li>
+        </ul>
+      </div>
+    </div>
+    <hr>
+    <p class="footer-copy">© <span id="year"></span> DonostiGo. Todos los derechos reservados.</p>
+  </footer>
+
+  <script>
+    document.getElementById("year").textContent = new Date().getFullYear();
+  </script>
+  <script>
+const chatBtn = document.getElementById('ai-chat-button');
+const chatWindow = document.getElementById('ai-chat-window');
+const chatClose = document.getElementById('ai-chat-close');
+const chatMessages = document.getElementById('ai-chat-messages');
+const chatInput = document.getElementById('ai-chat-input');
+const chatSend = document.getElementById('ai-chat-send');
+
+// abrir/cerrar chat
+chatBtn.onclick = () => chatWindow.style.display = 'flex';
+chatClose.onclick = () => chatWindow.style.display = 'none';
+
+// enviar mensaje
+chatSend.onclick = sendMessage;
+chatInput.addEventListener("keypress", e => {
+  if (e.key === "Enter") sendMessage();
+});
+
+function sendMessage() {
+  const text = chatInput.value.trim();
+  if (!text) return;
+
+  // mensaje del usuario
+  const userMsg = document.createElement("div");
+  userMsg.className = "ai-message user";
+  userMsg.textContent = text;
+  chatMessages.appendChild(userMsg);
+
+  chatInput.value = "";
+
+  // respuesta del "bot" (simulada)
+  setTimeout(() => {
+    const botMsg = document.createElement("div");
+    botMsg.className = "ai-message bot";
+    botMsg.textContent = "🤖 Estoy aquí para ayudarte con tus reservas y servicios DonostiGo.";
+    chatMessages.appendChild(botMsg);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  }, 700);
+}
+</script>
+
+</body>
+</html>
+

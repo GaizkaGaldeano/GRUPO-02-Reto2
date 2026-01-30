@@ -1,0 +1,320 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>DonostiGo — Reserva de Taxi</title>
+  <link rel="stylesheet" href="/donostigo/css/styles.css">
+  <link rel="icon" type="image/png" href="/donostigo/img optimizadas/taxi.webp">
+
+
+  <!-- Leaflet -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+  integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+  integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+
+
+  <link rel="icon" type="image/png" href="taxi.png">
+</head>
+<body>
+  <header class="site-header" role="banner">
+    <div class="container header-inner">
+      <a class="brand" href="index.html" aria-label="DonostiGo, página principal">
+           <img
+            src="/donostigo/img optimizadas/logo.webp"
+            alt="Logo de DonostiGo"
+            class="logo"
+            loading="lazy"
+            width="120"
+            height="40"
+          >
+        <span class="brand-title">DonostiGo</span>
+      </a>
+
+      <nav class="main-nav" role="navigation" aria-label="Menú principal">
+        <button id="navToggle" class="nav-toggle" aria-controls="primaryNav" aria-expanded="false">
+          <span class="sr-only">Abrir menú</span>
+          ☰
+        </button>
+
+        <ul id="primaryNav" class="nav-list" data-visible="false">
+          <li><a href="/donostigo/templates/index.html">Inicio</a></li>
+          <li><a href="/donostigo/templates/productos.html">Servicios</a></li>
+          <li><a href="/donostigo/templates/contacto.html">Contacto</a></li>
+          <li><a href="/donostigo/templates/reserva.html" class="btn-outline active">Reservar</a></li>
+          <li><a href="/donostigo/templates/registro.html" class="btn-login">Iniciar sesión</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main" class="site-main">
+    <section class="container reserva-section">
+      <h1 class="section-title">Reserva tu taxi</h1>
+      <p>Selecciona una parada de origen y una dirección de destino.</p>
+
+      <form id="formReserva" class="reserve-form" novalidate>
+        
+        <!-- ORIGEN -->
+        <label for="origen">Parada de origen</label>
+        <select id="origen" name="origen" required>
+          <option value="">Selecciona una parada...</option>
+        </select>
+
+        <!-- DESTINO con autocompletado -->
+        <label for="destinoInput">Dirección de destino</label>
+        <input id="destinoInput" name="destinoInput" type="text" placeholder="Escribe una dirección..." autocomplete="off" required />
+        <ul id="suggestions"></ul>
+
+        <!-- Fecha -->
+        <label for="hora">Hora de recogida</label>
+        <input id="hora" name="hora" type="datetime-local" required />
+
+        <button type="submit" class="btn">Pagar y confirmar reserva</button>
+
+      </form>
+
+      <div id="reservaMsg" class="reserve-msg" aria-live="polite"></div>
+
+      <div id="map"></div>
+    </section>
+  </main>
+
+  <footer class="footer-dark">
+    <div class="footer-container">
+      <div class="footer-col">
+        <h3 class="footer-logo">DonostiGo</h3>
+        <p>Soluciones de taxi en Donostia — transparencia y seguridad.</p>
+      </div>
+      <div class="footer-col">
+        <ul>
+          <li><a href="#">Servicios</a></li>
+          <li><a href="#">Precios</a></li>
+          <li><a href="#">Reservas</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <ul>
+          <li><a href="#">Soporte</a></li>
+          <li><a href="#">Centro de ayuda</a></li>
+          <li><a href="/donostigo/pdf/política_privacidad.pdf" target="_blank">Política de privacidad</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <ul>
+          <li><a href="sobreNosotros.html">Sobre nosotros</a></li>
+          <li><a href="#">Contacto</a></li>
+          <li><a href="#">Afiliados</a></li>
+        </ul>
+      </div>
+    </div>
+    <hr>
+    <p class="footer-copy">© <span id="year"></span> DonostiGo. Todos los derechos reservados.</p>
+  </footer>
+
+  <script>
+    document.getElementById("year").textContent = new Date().getFullYear();
+
+    // Inicializar mapa
+    const map = L.map('map').setView([43.3183, -1.9812], 14);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    const taxiIcon = L.icon({
+      iconUrl: '/donostigo/img optimizadas/taxi.webp',
+      iconSize: [40, 40],
+      iconAnchor: [20, 40],
+      popupAnchor: [0, -35]
+    });
+
+    // Lista de paradas
+    const taxiStops = [
+      { lat: 43.318617, lng: -1.984218, nombre: 'Avenida 45' },
+      { lat: 43.304764, lng: -1.976858, nombre: 'Avenida Madrid 9' },
+      { lat: 43.316631, lng: -1.971802, nombre: 'Virgen del Carmen, 11' },
+      { lat: 43.302887, lng: -1.980093, nombre: 'Jose María Salaberria' },
+      { lat: 43.304733, lng: -2.005509, nombre: 'Estornes - Igara' },
+      { lat: 43.313539, lng: -2.005670, nombre: 'Trento - Ondarreta' },
+      { lat: 43.313186, lng: -1.981895, nombre: 'Easo Pza' },
+      { lat: 43.307977, lng: -1.979132, nombre: 'Autobus Geltokia' },
+      { lat: 43.317805, lng: -1.977029, nombre: 'Iparraldeko Geltokia' },
+      { lat: 43.320163, lng: -1.981069, nombre: 'Idiakez' },
+      { lat: 43.316592, lng: -1.984558, nombre: 'Manterola' },
+      { lat: 43.315001, lng: -2.000539, nombre: 'Satrustegi' },
+      { lat: 43.325927, lng: -1.971102, nombre: 'Nafarroa Hiribidea' },
+      { lat: 43.293306, lng: -1.968666, nombre: 'Aranzazu Ospitalea' },
+      { lat: 43.321765, lng: -1.984776, nombre: 'Boulevard 25' },
+      { lat: 43.322945, lng: -1.977150, nombre: 'Colón Ibilbidea 11' },
+      { lat: 43.322387, lng: -1.973532, nombre: 'Aita Larroka' },
+      { lat: 43.305182, lng: -1.974122, nombre: 'Toribio Alzaga' },
+      { lat: 43.309527, lng: -1.991572, nombre: 'Izaburu kalea' },
+      { lat: 43.322684, lng: -1.941992, nombre: 'Julio Urkixo' },
+    ];
+
+    const origenSelect = document.getElementById('origen');
+    taxiStops.forEach(stop => {
+      L.marker([stop.lat, stop.lng], { icon: taxiIcon }).addTo(map).bindPopup(stop.nombre);
+      const option = new Option(stop.nombre, stop.nombre);
+      origenSelect.appendChild(option);
+    });
+
+    let destinoCoords = null;
+    const destinoInput = document.getElementById("destinoInput");
+    const suggestionsBox = document.getElementById("suggestions");
+
+    // AUTOCOMPLETADO
+    destinoInput.addEventListener("input", async () => {
+      const query = destinoInput.value.trim();
+      suggestionsBox.innerHTML = "";
+      destinoCoords = null;
+
+      if (query.length < 3) return;
+
+      const url = `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&q=${encodeURIComponent(query)}&limit=5`;
+
+      const res = await fetch(url, { headers: { "Accept-Language": "es" } });
+      const data = await res.json();
+
+      if (data.length === 0) return;
+
+      data.forEach(item => {
+        const li = document.createElement("li");
+        li.textContent = item.display_name;
+        li.addEventListener("click", () => {
+          destinoInput.value = item.display_name;
+          destinoCoords = [item.lat, item.lon];
+          suggestionsBox.innerHTML = "";
+          map.setView(destinoCoords, 17);
+        });
+        suggestionsBox.appendChild(li);
+      });
+    });
+
+    // CLICK EN MAPA → obtener dirección
+    map.on("click", async (e) => {
+      const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${e.latlng.lat}&lon=${e.latlng.lng}&addressdetails=1`;
+
+      const res = await fetch(url);
+      const data = await res.json();
+
+      if (!data.display_name) {
+        alert("No hay una dirección válida en este punto.");
+        return;
+      }
+
+      destinoInput.value = data.display_name;
+      destinoCoords = [e.latlng.lat, e.latlng.lng];
+
+      L.marker(destinoCoords).addTo(map).bindPopup("Destino").openPopup();
+    });
+
+    // ENVIAR FORMULARIO
+    document.getElementById('formReserva').addEventListener('submit', async e => {
+  e.preventDefault();
+
+  const origen = origenSelect.value;
+  const destino = destinoInput.value;
+  const hora = document.getElementById('hora').value;
+  const msg = document.getElementById('reservaMsg');
+
+  if (!origen || !destino || !hora || !destinoCoords) {
+    msg.textContent = '⚠️ Completa todos los campos correctamente.';
+    msg.classList.add('error');
+    return;
+  }
+
+  const fechaReserva = new Date(hora);
+  if (fechaReserva < new Date()) {
+    msg.textContent = '⚠️ No puedes reservar para una fecha pasada.';
+    msg.classList.add('error');
+    return;
+  }
+
+  const res = await fetch("/create-checkout-session", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      origen,
+      destino,
+      hora,
+      lat: destinoCoords[0],
+      lng: destinoCoords[1]
+    })
+  });
+
+  const data = await res.json();
+
+  if (data.url) {
+    window.location.href = data.url;
+  } else {
+    msg.textContent = '❌ Error al iniciar el pago.';
+    msg.classList.add('error');
+  }
+});
+
+  </script>
+
+  <!-- SCRIPT -->
+  <script>
+    document.getElementById("year").textContent = new Date().getFullYear();
+
+    // Menú accesible
+    const navToggle = document.getElementById('navToggleRegister');
+    const navList = document.getElementById('primaryNavRegister');
+    navToggle.addEventListener('click', () => {
+      const visible = navList.dataset.visible === 'true';
+      navList.dataset.visible = !visible;
+      navToggle.setAttribute('aria-expanded', !visible);
+    });
+
+    // Cambiar entre pestañas
+    const tabs = document.querySelectorAll('.tab');
+    const forms = document.querySelectorAll('.auth-form');
+
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        tabs.forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        const target = tab.dataset.target;
+        forms.forEach(f => f.classList.remove('active'));
+        document.getElementById(target).classList.add('active');
+      });
+    });
+
+    // Validación formularios
+    const registerForm = document.getElementById('registerForm');
+    const registerMsg = document.getElementById('registerMsg');
+    const loginForm = document.getElementById('loginForm');
+    const loginMsg = document.getElementById('loginMsg');
+
+    registerForm.addEventListener('submit', e => {
+      e.preventDefault();
+      if(!registerForm.checkValidity()) {
+        registerMsg.textContent = 'Por favor, completa todos los campos correctamente.';
+        registerMsg.style.color = '#ff7b7b';
+        return;
+      }
+      registerMsg.textContent = '¡Registro exitoso! Ya puedes iniciar sesión.';
+      registerMsg.style.color = '#62ff9c';
+      registerForm.reset();
+    });
+
+    loginForm.addEventListener('submit', e => {
+      e.preventDefault();
+      if(!loginForm.checkValidity()) {
+        loginMsg.textContent = 'Por favor, completa todos los campos correctamente.';
+        loginMsg.style.color = '#ff7b7b';
+        return;
+      }
+      loginMsg.textContent = '¡Inicio de sesión exitoso!';
+      loginMsg.style.color = '#62ff9c';
+      loginForm.reset();
+    });
+  </script>
+
+</body>
+</html>

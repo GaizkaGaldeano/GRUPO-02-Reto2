@@ -1,0 +1,987 @@
+/* ========== VARIABLES ========== */
+:root {
+  --bg: #0c1526;
+  --surface: #122038;
+  --accent: #2f7fff;
+  --accent-2: #62a8ff;
+  --text: #f6f8fb;
+  --muted: #b3bbcc;
+  --radius: 12px;
+  --container: 1100px;
+  --transition: 300ms cubic-bezier(.2,.9,.25,1);
+  --glass: rgba(255,255,255,0.08);
+  --glass-2: rgba(255,255,255,0.03);
+  --header-height: 80px;
+}
+
+/* ========== BASE ========== */
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: "Inter", system-ui, sans-serif;
+  background: linear-gradient(180deg, #0c1526 0%, #182b4a 100%);
+  color: var(--text);
+  line-height: 1.5;
+}
+
+img { max-width: 100%; height: auto; display: block; }
+a { text-decoration: none; color: inherit; }
+.container { max-width: var(--container); margin: 0 auto; padding: 1rem; }
+
+/* ========== NAVBAR (TRANSPARENTE Y CLARO) ========== */
+.site-header {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%;
+  z-index: 99999; /* al poner 99999 hacemos que el header este siempre encima del resto*/
+  background: rgba(18, 32, 56, 0.3); /* transparente */
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  transition: background 0.4s ease;
+  height: var(--header-height); /* facilita la sincronía */
+}
+
+
+.header-inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: .8rem 1.2rem;
+}
+
+.logo { height: 32px; width: auto; }
+.brand-title { font-weight: 700; color: var(--text); }
+
+.nav-list {
+  list-style: none;
+  display: flex;
+  gap: 1rem;
+  margin: 0; padding: 0;
+}
+main.site-main,
+.hero-style {
+  padding-top: calc(var(--header-height) + 1rem); /* +1rem para respiración */
+}
+.nav-list a {
+  color: var(--text);
+  padding: .45rem .6rem;
+  border-radius: 8px;
+  transition: color 0.3s ease, background 0.3s ease;
+}
+
+.nav-list a:hover {
+  color: var(--accent-2);
+  background: rgba(255,255,255,0.08);
+}
+
+.nav-toggle {
+  display: none;
+  background: transparent;
+  border: 0;
+  color: var(--text);
+  font-size: 1.6rem;
+  cursor: pointer;
+}
+/* 🔹 Botón de inicio de sesión / registro */
+.btn-login {
+  background-color: #0e02bb;
+  color: #111;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background-color 0.3s, transform 0.2s;
+  margin-left: 1rem;
+}
+
+.btn-login:hover {
+  background-color: #ffc733;
+  transform: translateY(-2px);
+}
+
+/* ========== HERO ========== NUEVO OPTIMIZADO */ 
+.hero-style {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  text-align: center;
+  overflow: hidden;
+
+  background-color: #0a1423; /* fallback */
+  background-image: url("/donostigo/img optimizadas/taxi3.webp");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+@media (max-width: 768px) {
+  .hero-style {
+    background-image: url("/donostigo/img optimizadas/taxi3.webp");
+    min-height: 90vh;
+  }
+}
+
+
+.hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(10, 20, 35, 0.65) 0%,
+    rgba(10, 20, 35, 0.9) 100%
+  );
+  z-index: 1;
+}
+
+
+.hero-content {
+  position: relative;
+  z-index: 2;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+  color: #fff;
+}
+
+
+.hero-subtitle {
+  color: var(--accent-2);
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.hero-heading {
+  font-size: clamp(2.2rem, 6vw, 4rem);
+  font-weight: 800;
+  margin: .5rem 0 1rem;
+}
+
+.hero-text {
+  color: #eaf0ff;
+  opacity: 0.9;
+  margin-bottom: 1.5rem;
+  font-size: 1.1rem;
+}
+
+.hero-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.btn {
+  background: var(--accent);
+  color: #fff;
+  padding: .8rem 1.4rem;
+  border-radius: 30px;
+  border: none;
+  font-weight: 600;
+  transition: all .3s ease;
+  margin-top: 10px;
+}
+
+.btn:hover {
+  background: var(--accent-2);
+  transform: translateY(-3px);
+}
+
+/* ========== SERVICIOS (NUEVO DISEÑO) ========== */
+.servicios-section {
+  padding: 5rem 1rem;
+  background: var(--surface);
+  border-top: 1px solid rgba(255,255,255,0.05);
+}
+
+.servicios-section h2 {
+  text-align: center;
+  color: var(--accent-2);
+  font-size: 2rem;
+  margin-bottom: 2.5rem;
+}
+
+.services-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 2rem;
+  margin-top: 2rem;
+}
+
+.service-card {
+  background: var(--glass);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: var(--radius);
+  overflow: hidden;
+  transition: transform .3s ease, box-shadow .3s ease;
+  text-align: center;
+  padding-bottom: 1.5rem;
+}
+
+.service-card img {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.service-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+}
+
+.servicio-card h3 {
+  margin-bottom: .5rem;
+  color: var(--text);
+}
+
+.servicio-card p {
+  font-size: .95rem;
+  color: var(--muted);
+}
+.services-hero {
+  position: relative;
+  background: url("logo.jpg") center/cover no-repeat;
+  color: white;
+  text-align: center;
+  padding: 2rem 1rem 5rem; /* antes era 6rem — aumentamos margen superior */
+  margin-top: 70px; /* compensa el header fijo */
+}
+
+
+.services-hero .overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+}
+
+.services-hero .content {
+  position: relative;
+  z-index: 1;
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+button.btn-outline {
+  background: transparent;
+  color: #007bff;
+  border: 2px solid #007bff;
+  padding: 0.6em 1.2em;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+button.btn-outline:hover {
+  background-color: #007bff;
+  color: #fff;
+}
+
+
+
+  /* ========== RESPONSIVE ========== */
+@media (max-width: 720px) {
+  .nav-toggle { display: inline-flex; }
+  .nav-list {
+    position: fixed;
+    top: 70px;
+    right: 1rem;
+    background: rgba(15, 22, 35, 0.95);
+    flex-direction: column;
+    padding: 1rem;
+    border-radius: 12px;
+    gap: .6rem;
+    transform: scale(.98);
+    opacity: 0;
+    pointer-events: none;
+    transition: all .3s ease;
+  }
+  .nav-list[data-visible="true"] {
+    opacity: 1; pointer-events: auto; transform: scale(1);
+  }
+  .hero-buttons { flex-direction: column; }
+}
+
+
+/* ========== FOOTER OSCURO Y MODERNO ========== */
+
+.footer-dark {
+  background: linear-gradient(180deg, #0c1526 0%, #182b4a 100%);
+  color: #cfd8f5; /* texto claro */
+  text-align: center;
+  font-family: "Poppins", sans-serif;
+  padding: 60px 20px;
+  border-top: 1px solid rgba(255,255,255,0.1);
+}
+
+.footer-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 50px;
+  margin-bottom: 40px;
+}
+
+.footer-col {
+  min-width: 150px;
+}
+
+.footer-logo {
+  color: #62a8ff; /* acento azul */
+  font-size: 1.4rem;
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+}
+
+.footer-col p {
+  font-size: 0.9rem;
+  color: #b3bbcc; /* gris suave */
+  margin-top: 0;
+}
+
+.footer-col ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.footer-col ul li {
+  margin-bottom: 0.5rem;
+}
+
+.footer-col a {
+  color: #cfd8f5;
+  text-decoration: none;
+  font-size: 0.9rem;
+  transition: color 0.3s;
+}
+
+.footer-col a:hover {
+  color: #62a8ff;
+}
+
+.footer-dark hr {
+  border: 0;
+  border-top: 1px solid rgba(255,255,255,0.15);
+  margin: 30px auto;
+  width: 80%;
+}
+
+.footer-social {
+  margin-bottom: 20px;
+}
+
+.footer-social a {
+  color: #cfd8f5;
+  font-size: 1.1rem;
+  margin: 0 10px;
+  transition: color 0.3s;
+}
+
+.footer-social a:hover {
+  color: #62a8ff;
+}
+
+.footer-copy {
+  color: #a0b0d5; /* gris-azulado suave */
+  font-size: 0.85rem;
+}
+
+/* RESPONSIVO */
+@media (max-width: 768px) {
+  .footer-container {
+    flex-direction: column;
+    text-align: center;
+  }
+}
+
+
+
+/* === CONTACTO CENTRADO === */
+.contact-grid {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  flex-direction: column;
+  max-width: 600px;
+  margin: 2rem auto 4rem;
+  background: var(--glass);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: var(--radius);
+  padding: 2rem;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+  animation: fadeUp 0.8s var(--transition) forwards;
+}
+
+/* Centrar el título y mejorar su contraste */
+.section-title {
+  text-align: center;
+  color: var(--accent-2);
+  font-size: 2.2rem;
+  margin-bottom: 1rem;
+}
+
+/* === Formularios: mejor equilibrio visual === */
+.contact-form label {
+  font-weight: 600;
+  margin-bottom: .3rem;
+  display: inline-block;
+}
+
+.contact-form input,
+.contact-form textarea {
+  width: 100%;
+  margin-bottom: 1.2rem;
+  padding: 0.8rem;
+  border-radius: var(--radius);
+  border: 1px solid rgba(255,255,255,0.2);
+  background: var(--glass-2);
+  color: var(--text);
+  transition: border-color var(--transition), transform var(--transition);
+}
+
+.contact-form input:focus,
+.contact-form textarea:focus {
+  border-color: var(--accent);
+  outline: none;
+  transform: scale(1.02);
+}
+
+/* === Botón más centrado y visible === */
+.contact-form .btn {
+  display: block;
+  margin: 1rem auto 0;
+  padding: 0.9rem 1.8rem;
+}
+
+/* === Responsivo === */
+@media (max-width: 600px) {
+  .contact-grid {
+    padding: 1.5rem;
+    margin: 1rem;
+  }
+}
+/* ========== SERVICIOS (MEJORAS ADICIONALES) ========== */
+.service-card h3 {
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+  color: var(--accent-2);
+  font-size: 1.2rem;
+}
+
+.service-card p {
+  color: var(--text);
+  font-size: 0.95rem;
+  line-height: 1.4;
+  padding: 0 1rem;
+}
+
+/* ========== MAPA MÁS PEQUEÑO Y CENTRADO ========== */
+.map-preview {
+  position: relative;  
+  z-index: 0;          
+  margin: 2rem auto;   
+}
+
+.map-preview #map {
+  width: 100%;        
+  height: 500px;       
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.1);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+}
+
+/* ========== MAPA RESPONSIVO ========== */
+@media (max-width: 720px) {
+  .map-preview #map {
+    width: 100%;       
+    height: 250px;     
+  }
+}
+
+
+/* === PESTAÑAS LOGIN / REGISTRO === */
+.auth-tabs-container {
+  max-width: 400px;
+  margin: 2rem auto 4rem;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+  animation: fadeUp 0.8s 300ms forwards;
+}
+
+.tabs {
+  display: flex;
+  justify-content: space-around;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid rgba(255,255,255,0.2);
+}
+
+.tab {
+  flex: 1;
+  padding: 0.75rem 0;
+  text-align: center;
+  cursor: pointer;
+  font-weight: 600;
+  background: transparent;
+  border: none;
+  color: #b3bbcc;
+  transition: color 0.3s, border-bottom 0.3s;
+  border-bottom: 3px solid transparent;
+}
+
+.tab.active {
+  color: #62a8ff;
+  border-bottom: 3px solid #62a8ff;
+}
+
+.forms .auth-form { display: none; }
+.forms .auth-form.active { display: block; }
+
+.auth-form label {
+  font-weight: 600;
+  margin-bottom: 0.3rem;
+  display: inline-block;
+}
+
+.auth-form input {
+  width: 100%;
+  margin-bottom: 1.2rem;
+  padding: 0.8rem;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.2);
+  background: rgba(255,255,255,0.03);
+  color: #f6f8fb;
+  transition: border-color 0.3s, transform 0.3s;
+}
+
+.auth-form input:focus {
+  border-color: #2f7fff;
+  outline: none;
+  transform: scale(1.02);
+}
+
+.auth-form button {
+  display: block;
+  margin: 1rem auto 0;
+  padding: 0.9rem 1.8rem;
+  background: #2f7fff;
+  color: #fff;
+  border: none;
+  border-radius: 30px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.auth-form button:hover {
+  background: #62a8ff;
+  transform: translateY(-3px);
+}
+
+.reserve-msg {
+  margin-top: 0.5rem;
+  font-weight: bold;
+  text-align: center;
+  font-size: 0.95rem;
+  color: #62a8ff;
+}
+
+/* RESPONSIVO */
+@media (max-width: 600px) {
+  .auth-tabs-container {
+    padding: 1rem;
+    margin: 1rem auto 3rem;
+  }
+
+  .tabs {
+    flex-direction: column;
+    gap: 0.5rem;
+    border-bottom: none;
+  }
+
+  .tab {
+    border-bottom: none;
+    background: rgba(255,255,255,0.05);
+    border-radius: 12;
+  }
+}
+
+
+/* === SOBRE NOSOTROS MEJORADO === */
+
+.container {
+  width: min(1200px, 90%);
+  margin: 0 auto;
+}
+
+/* --- TÍTULOS --- */
+.section-title {
+  text-align: center;
+  color: #62a8ff;
+  font-size: 2.5rem;
+  margin-top: 1rem;
+}
+
+.section-subtitle {
+  text-align: center;
+  color: #9da6bb;
+  margin-bottom: 4rem;
+}
+
+/* --- SECCIONES --- */
+.about-section {
+  padding: 4rem 0;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.about-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4rem;
+  width: min(1100px, 90%);
+  margin: 0 auto;
+}
+
+.about-section.reverse .about-content {
+  flex-direction: row-reverse;
+}
+
+/* Texto */
+.about-content .text {
+  flex: 1;
+  min-width: 320px;
+}
+
+.about-content .text h2 {
+  color: #62a8ff;
+  font-size: 2rem;
+  margin-bottom: 1.5rem;
+}
+
+.about-content .text p {
+  margin-bottom: 1.2rem;
+  color: #bfc6d8;
+  line-height: 1.75;
+  max-width: 520px;
+}
+
+/* Imagen */
+.about-content .image {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+}
+
+.about-content .image img {
+  width: 90%;
+  max-width: 420px;
+  border-radius: 20px;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.about-content .image img:hover {
+  transform: scale(1.03);
+}
+
+/* --- INTRO CON FOTO --- */
+.about-intro {
+  position: relative;
+  height: 60vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: #fff;
+  overflow: hidden;
+
+  /* Imagen optimizada */
+  background-color: #000; /* fallback */
+  background-image: url("img optimizadas/manos-ordenador.webp");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.about-intro .intro-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  z-index: 1;
+}
+
+.about-intro .container {
+  position: relative;
+  z-index: 2;
+  width: min(900px, 90%);
+}
+
+
+.about-intro .section-title {
+  font-size: 2.8rem;
+  color: #62a8ff;
+  margin-bottom: 1rem;
+}
+
+.about-intro .section-subtitle {
+  color: #cdd3e0;
+  font-size: 1.1rem;
+}
+
+/* --- EQUIPO --- */
+.team-section {
+  padding: 5rem 0 6rem;
+  text-align: center;
+  width: min(1100px, 90%);
+  margin: 0 auto;
+}
+
+.team-grid {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  flex-wrap: wrap;
+  margin-top: 2rem;
+}
+
+.team-card {
+  background: rgba(255,255,255,0.08);
+  border-radius: 12px;
+  padding: 1.5rem;
+  max-width: 300px;
+  text-align: center;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.team-card img {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-bottom: 1rem;
+  border: 2px solid rgba(98,168,255,0.5);
+}
+
+.team-card h3 {
+  color: #62a8ff;
+  margin-bottom: 0.5rem;
+}
+
+.team-card p {
+  color: #b3bbcc;
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+
+.team-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 12px 30px rgba(0,0,0,0.5);
+}
+
+/* --- RESPONSIVE --- */
+@media (max-width: 900px) {
+  .about-content {
+    flex-direction: column;
+    text-align: center;
+    gap: 2rem;
+  }
+
+  .about-content .image img {
+    width: 100%;
+    max-width: 350px;
+  }
+}
+
+
+/* --------------- CHAT AI --------------- */
+#ai-chat-button { /*formato del boton flotante de chat que esta a la derecha*/
+  position: fixed;
+  bottom: 25px;
+  right: 25px;
+  background-color: #007bff;
+  color: white;
+  font-size: 24px;
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  transition: transform 0.3s ease;
+  z-index: 9999;
+}
+
+#ai-chat-button:hover { 
+  transform: scale(1.1);
+}
+
+#ai-chat-window { /*formato de la ventana del chat*/
+  position: fixed;
+  bottom: 100px;
+  right: 25px;
+  width: 320px;
+  height: 420px;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+  display: none;
+  flex-direction: column;
+  overflow: hidden;
+  z-index: 10000;
+  overflow: hidden;
+}
+
+#ai-chat-header { /*formato de la cabecera del chat*/ 
+  background-color: #007bff;
+  color: white;
+  padding: 12px;
+  font-weight: bold;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+#ai-chat-header button { /*formato del boton de cerrar el chat, la x de arriba a la derecha*/
+  background: transparent;
+  border: none;
+  color: white;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+#ai-chat-messages { /*formato del area de mensajes del chat*/
+  flex: 1;
+  padding: 10px;
+  overflow-y: auto;
+  font-size: 14px;
+  display: flex;
+  flex-direction: column;
+  background-color: #fcfcfc;
+}
+
+.ai-message { /*formato de cada mensaje del chat*/
+  margin-bottom: 10px;
+  line-height: 1.4;
+}
+
+.ai-message.user { /*formato de los mensajes del usuario (los que escribes y envias al chat/al bot) cuando se envian y salen el el chat*/
+  text-align: right;
+  color: #030303;
+}
+
+.ai-message.bot { /*formato de los mensajes del bot (los que te responde la ia) y salen en el chat*/
+  text-align: left;
+  color: #007bff;
+}
+
+#ai-chat-input-area { /*formato de la linea donde se escribe el mensaje*/
+  display: flex;
+  border-top: 1px solid #007bff;
+}
+
+#ai-chat-input { /*formato del cuadro donde se escribe el mensaje*/
+  flex: 1;
+  padding: 8px;
+  border: none;
+  outline: none;
+}
+
+#ai-chat-send { /*formato del boton de enviar mensaje*/
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+
+/* === Mapa === */
+#map {
+    width: 100%;
+    height: 400px;
+    margin-top: 20px;
+    border-radius: 10px;
+    position: relative;
+}
+
+/* === Autocompletado de direcciones === */
+#suggestions {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    background: white;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    position: absolute;
+    z-index: 9999;
+    width: 90%;
+    max-height: 150px;
+    overflow-y: auto;
+}
+
+#suggestions li {
+    padding: 8px;
+    cursor: pointer;
+    border-bottom: 1px solid #eee;
+}
+
+#suggestions li:last-child {
+    border-bottom: none;
+}
+
+#suggestions li:hover {
+    background: #eee;
+}
+
+/* Hace que el formulario quede por encima del mapa */
+.reserve-form {
+    position: relative;
+    z-index: 5000;
+}
+
+.reserve-form select {
+    position: relative;
+    z-index: 6000;
+}
+
+/* ESTILO DE FAVORITOS EN PRODUCTOS */
+/* Estilos para el botón de favoritos encima de la foto */
+.service-card {
+    position: relative; /* Importante para que el corazón flote dentro */
+}
+
+.btn-fav {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: white;
+    border-radius: 50%;
+    border: 1px solid #ddd;
+    width: 40px;
+    height: 40px;
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    z-index: 10;
+}
+
+.rating-display {
+    color: #f1c40f; /* Color oro DonostiGo */
+    margin-bottom: 10px;
+    font-size: 0.9rem;
+}
+
+

@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>DonostiGo — Acceso</title>
+  <link rel="stylesheet" href="/donostigo/css/styles.css">
+  <link rel="icon" type="image/png" href="/donostigo/img optimizadas/taxi.webp">
+
+</head>
+<body>
+  <a class="skip-link" href="#main">Saltar al contenido</a>
+
+  <header class="site-header" role="banner">
+    <div class="header-inner container">
+      <a class="brand" href="/donostigo/templates/index.html" aria-label="DonostiGo, página principal">
+        <img src="/donostigo/img optimizadas/logo.webp" alt="Logo de DonostiGo" class="logo">
+        <span class="brand-title">DonostiGo</span>
+      </a>
+      <nav class="main-nav" aria-label="Menú principal">
+        <button id="navToggleRegister" class="nav-toggle" aria-controls="primaryNavRegister" aria-expanded="false">
+          <span class="sr-only">Abrir menú</span>☰
+        </button>
+        <ul id="primaryNavRegister" class="nav-list" data-visible="false">
+          <li><a href="/donostigo/templates/index.html">Inicio</a></li>
+          <li><a href="/donostigo/templates/productos.html">Servicios</a></li>
+          <li><a href="/donostigo/templates/contacto.html">Contacto</a></li>
+          <li><a href="/donostigo/templates/reserva.html" class="btn-outline">Reservar</a></li>
+          <li><a href="/donostigo/templates/registro.html" class="btn-login">Iniciar sesión</a></li>
+
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main" class="site-main container" tabindex="-1">
+    <h1 class="section-title fade-in">Acceso a DonostiGo</h1>
+
+    <!-- CONTENEDOR DONDE REACT VA A PINTAR TODO -->
+    <!-- React controla únicamente esta parte de la página -->
+    <section class="auth-tabs-container fade-in">
+      <div id="react-auth"></div>
+    </section>
+  </main>
+
+<!----------------------------------------------- FOOTER ------------------------------------------------------>
+<footer class="footer-dark">
+  <div class="footer-container">
+    <div class="footer-col">
+      <h3 class="footer-logo">DonostiGo</h3>
+      <p>Soluciones de taxi en Donostia — transparencia y seguridad.</p>
+    </div>
+
+    <div class="footer-col">
+      <ul>
+        <li><a href="/donostigo/templates/productos.html">Servicios</a></li>
+        <li><a href="/donostigo/templates/reserva.html">Reservas</a></li>
+      </ul>
+    </div>
+
+    <div class="footer-col">
+      <ul>
+        <li><a href="/donostigo/templates/contacto.html">Soporte</a></li>
+        <li><a href="#">Centro de ayuda</a></li>
+        <li><a href="/donostigo/pdf/política_privacidad.pdf" target="_blank">Política de privacidad</a></li>
+      </ul>
+    </div>
+
+    <div class="footer-col">
+      <ul>
+        <li><a href="/donostigo/templates/sobreNosotros.html">Sobre nosotros</a></li>
+        <li><a href="/donostigo/templates/contacto.html">Contacto</a></li>
+        <li><a href="/donostigo/templates/sobreNosotros.html#equipo">Afiliados</a></li>
+      </ul>
+    </div>
+  </div>
+
+    <hr>
+
+    <p class="footer-copy">
+      © <span id="year"></span> DonostiGo. Todos los derechos reservados.
+    </p>
+  </footer>
+
+  <!----------------------------------------------- SCRIPT ------------------------------------------------------>
+  <script>
+    document.getElementById("year").textContent = new Date().getFullYear();
+
+    const navToggle = document.getElementById('navToggleRegister');
+    const navList = document.getElementById('primaryNavRegister');
+    navToggle.addEventListener('click', () => {
+      const visible = navList.dataset.visible === 'true';
+      navList.dataset.visible = !visible;
+      navToggle.setAttribute('aria-expanded', !visible);
+    });
+
+            // Cambiar entre pestañas
+    const tabs = document.querySelectorAll('.tab');
+    const forms = document.querySelectorAll('.auth-form');
+
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        tabs.forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        const target = tab.dataset.target;
+        forms.forEach(f => f.classList.remove('active'));
+        document.getElementById(target).classList.add('active');
+      });
+    });
+
+            // Validación formularios
+    const registerForm = document.getElementById('registerForm');
+    const registerMsg = document.getElementById('registerMsg');
+    const loginForm = document.getElementById('loginForm');
+    const loginMsg = document.getElementById('loginMsg');
+
+    registerForm.addEventListener('submit', e => {
+      e.preventDefault();
+      if(!registerForm.checkValidity()) {
+        registerMsg.textContent = 'Por favor, completa todos los campos correctamente.';
+        registerMsg.style.color = '#ff7b7b';
+        return;
+      }
+      registerMsg.textContent = '¡Registro exitoso! Ya puedes iniciar sesión.';
+      registerMsg.style.color = '#62ff9c';
+      registerForm.reset();
+    });
+
+    loginForm.addEventListener('submit', e => {
+      e.preventDefault();
+      if(!loginForm.checkValidity()) {
+        loginMsg.textContent = 'Por favor, completa todos los campos correctamente.';
+        loginMsg.style.color = '#ff7b7b';
+        return;
+      }
+      loginMsg.textContent = '¡Inicio de sesión exitoso!';
+      loginMsg.style.color = '#62ff9c';
+      loginForm.reset();
+    });
+  </script>
+
+  <!-- React: librería principal -->
+  <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+
+  <!-- ReactDOM: permite renderizar React en el HTML -->
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+
+  <!-- Babel: permite usar JSX directamente en el navegador -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+
+ <script type="text/babel">
+function AuthTabs() {
+  const [activeTab, setActiveTab] = React.useState("login");
+  const [message, setMessage] = React.useState("");
+
+  // -----------------------------
+  // LOGIN
+  // -----------------------------
+  const handleLogin = async (e) => {
+    e.preventDefault();
+
+    const email = e.target.email.value;
+    const password = e.target.password.value;
+
+    try {
+      const res = await fetch("/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password })
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        setMessage("¡Inicio de sesión exitoso!");
+        // Redirigir a la página protegida
+        window.location.href = "/reserva";
+      } else {
+        setMessage(data.error || "Error desconocido");
+      }
+    } catch (err) {
+      setMessage("Error de conexión con el servidor");
+    }
+  };
+
+  // -----------------------------
+  // REGISTRO
+  // -----------------------------
+  const handleRegister = async (e) => {
+    e.preventDefault();
+
+    const name = e.target.name?.value; // opcional si quieres enviar
+    const email = e.target.email.value;
+    const password = e.target.password.value;
+
+    try {
+      const res = await fetch("/api/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password })
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        setMessage("¡Registro exitoso! Redirigiendo...");
+        // Redirigir automáticamente al login/reserva
+        window.location.href = "/reserva";
+      } else {
+        setMessage(data.error || "Error desconocido");
+      }
+    } catch (err) {
+      setMessage("Error de conexión con el servidor");
+    }
+  };
+
+  // -----------------------------
+  // JSX
+  // -----------------------------
+  return (
+    <div>
+      {/* PESTAÑAS */}
+      <div className="tabs">
+        <button
+          className={activeTab === "login" ? "tab active" : "tab"}
+          onClick={() => { setActiveTab("login"); setMessage(""); }}
+        >
+          Iniciar sesión
+        </button>
+        <button
+          className={activeTab === "register" ? "tab active" : "tab"}
+          onClick={() => { setActiveTab("register"); setMessage(""); }}
+        >
+          Registrarse
+        </button>
+      </div>
+
+      {/* FORMULARIOS */}
+      <div className="forms">
+        {activeTab === "login" && (
+          <form className="auth-form active" onSubmit={handleLogin}>
+            <label>Correo electrónico</label>
+            <input type="email" name="email" required />
+
+            <label>Contraseña</label>
+            <input type="password" name="password" required />
+
+            <button className="btn">Iniciar sesión</button>
+          </form>
+        )}
+
+        {activeTab === "register" && (
+          <form className="auth-form active" onSubmit={handleRegister}>
+            <label>Nombre</label>
+            <input type="text" name="name" />
+
+            <label>Correo electrónico</label>
+            <input type="email" name="email" required />
+
+            <label>Contraseña</label>
+            <input type="password" name="password" minLength="6" required />
+
+            <button className="btn">Registrarse</button>
+          </form>
+        )}
+      </div>
+
+      {/* MENSAJE DE CONFIRMACIÓN */}
+      {message && (
+        <div className="reserve-msg" style={{ color: "#62ff9c" }}>
+          {message}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Renderiza React en el div con id="react-auth"
+ReactDOM.createRoot(document.getElementById("react-auth")).render(<AuthTabs />);
+</script>
+
+
+
+
+</body>
+</html>

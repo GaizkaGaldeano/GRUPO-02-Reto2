@@ -1,0 +1,291 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Viajes Reservados — DonostiGo</title>
+
+<link rel="stylesheet" href="/donostigo/css/styles.css">
+<link rel="icon" type="image/png" href="/donostigo/img optimizadas/taxi.webp">
+
+
+<!-- Leaflet -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+</head>
+
+<body>
+
+<header class="site-header">
+  <div class="container header-inner">
+    <a class="brand" href="index.html">
+      <img src="/donostigo/img optimizadas/logo.webp" alt="Logo de DonostiGo" class="logo" loading="lazy" width="120" height="40">
+      <span class="brand-title">DonostiGo</span>
+    </a>
+    <nav class="main-nav">
+      <button id="navToggle" class="nav-toggle" aria-controls="primaryNav" aria-expanded="false">
+        <span class="sr-only">Abrir menú</span>
+        ☰
+      </button>
+      <ul id="primaryNav" class="nav-list" data-visible="false">
+        <li><a href="/donostigo/templates/index.html">Inicio</a></li>
+        <li><a href="/donostigo/templates/productos.html" class="active">Servicios</a></li>
+        <li><a href="/donostigo/templates/contacto.html">Contacto</a></li>
+        <li><a href="/donostigo/templates/reserva.html">Reservar</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<main class="site-main">
+  <section class="container reserva-section">
+
+    <h1 class="section-title">Tarifa Aeropuerto</h1>
+    <p>Indica el punto exacto donde deseas que el taxi te recoja y a dónde deseas ir.</p>
+
+    <form id="formReservado" class="reserve-form">
+
+      <!-- ORIGEN -->
+      <label for="origenInput">Dirección de recogida</label>
+      <div style="position:relative;">
+        <input id="origenInput" type="text" placeholder="Escribe una dirección…" autocomplete="off" required>
+        <ul id="suggestionsOrigen"></ul>
+      </div>
+
+      <!-- DESTINO -->
+      <label for="destinoSelect">Aeropuerto o destino cercano</label>
+      <select id="destinoSelect" required>
+        <option value="">Selecciona un destino…</option>
+        <option value="Aeropuerto de San Sebastián (EAS)" data-price="2000">Aeropuerto de San Sebastián (EAS) — 30€</option>
+        <option value="Aeropuerto de Bilbao (BIO)" data-price="3500">Aeropuerto de Bilbao (BIO) — 80€</option>
+        <option value="Aeropuerto de Vitoria (VIT)" data-price="3000">Aeropuerto de Vitoria (VIT) — 70€</option>
+        <option value="Estación de tren de San Sebastián" data-price="1500">Estación de tren de San Sebastián — 15€</option>
+      </select>
+
+      <!-- Mostrar precio -->
+      <p id="precioSeleccionado"></p>
+
+      <!-- FECHA -->
+      <label for="hora">Fecha y hora de recogida</label>
+      <input id="hora" type="datetime-local" required />
+
+      <!-- Botón de pago -->
+      <button type="button" id="pagarBtn" class="btn" disabled>Pagar y reservar</button>
+
+    </form>
+
+    <div id="reservaMsg" class="reserve-msg"></div>
+
+    <div id="map" style="margin-top:20px;"></div>
+
+  </section>
+</main>
+
+<script>
+/* ============================ MAPA ============================= */
+const map = L.map('map').setView([43.3183, -1.9812], 14);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
+
+const taxiIcon = L.icon({ iconUrl: '/donostigo/img optimizadas/taxi.webp', iconSize:[40,40], iconAnchor:[20,40], popupAnchor:[0,-35] });
+
+let origenCoords = null;
+let origenMarker = null;
+let destinoMarker = null;
+
+/* ============================ AUTOCOMPLETADO ORIGEN ============================= */
+const origenInput = document.getElementById("origenInput");
+const suggestionsOrigen = document.getElementById("suggestionsOrigen");
+
+async function buscarDirecciones(query){
+  const bbox = "-2.05,43.26,-1.90,43.35";
+  const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=5&bounded=1&viewbox=${bbox}&q=${encodeURIComponent(query + " Donostia")}`, {
+    headers: { "Accept-Language":"es", "User-Agent":"DonostiGo/1.0" }
+  });
+  return await res.json();
+}
+
+origenInput.addEventListener("input", async ()=>{
+  const query = origenInput.value.trim();
+  suggestionsOrigen.innerHTML = "";
+  origenCoords = null;
+  if(query.length<3) return;
+  const results = await buscarDirecciones(query);
+  results.forEach(item=>{
+    const li = document.createElement("li");
+    li.textContent = item.display_name;
+    li.onclick=()=>{
+      origenInput.value=item.display_name;
+      origenCoords=[item.lat,item.lon];
+      suggestionsOrigen.innerHTML="";
+      if(origenMarker) origenMarker.remove();
+      origenMarker = L.marker(origenCoords,{icon:taxiIcon}).addTo(map);
+      map.setView(origenCoords,17);
+    };
+    suggestionsOrigen.appendChild(li);
+  });
+});
+
+/* ============================ CLICK EN MAPA PARA ORIGEN ============================= */
+map.on("click", async (e) => {
+  const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${e.latlng.lat}&lon=${e.latlng.lng}&addressdetails=1`;
+  const res = await fetch(url);
+  const data = await res.json();
+
+  if (!data.display_name.includes("Donostia") && !data.display_name.includes("San Sebastián")) {
+    alert("Selecciona un punto dentro de Donostia.");
+    return;
+  }
+
+  origenInput.value = data.display_name;
+  origenCoords = [e.latlng.lat, e.latlng.lng];
+
+  if (origenMarker) origenMarker.remove();
+  origenMarker = L.marker(origenCoords, { icon: taxiIcon }).addTo(map);
+
+  map.setView(origenCoords, 17);
+});
+
+/* ============================ DESTINO SELECT ============================= */
+const destinoSelect = document.getElementById("destinoSelect");
+const precioSeleccionado = document.getElementById("precioSeleccionado");
+const pagarBtn = document.getElementById("pagarBtn");
+
+const destinosCoords = {
+  "Aeropuerto de San Sebastián (EAS)": [43.36, -1.79],
+  "Aeropuerto de Bilbao (BIO)": [43.30, -2.91],
+  "Aeropuerto de Vitoria (VIT)": [42.86, -2.73],
+  "Estación de tren de San Sebastián": [43.32, -1.98],
+  "Puerto de Pasajes": [43.32, -1.95]
+};
+
+destinoSelect.addEventListener("change", ()=>{
+  const selectedOption = destinoSelect.selectedOptions[0];
+  const precio = selectedOption.dataset.price;
+  if(precio){
+    precioSeleccionado.textContent = `Precio aproximado: €${(precio/100).toFixed(2)}`;
+    pagarBtn.disabled=false;
+  }else{
+    precioSeleccionado.textContent="";
+    pagarBtn.disabled=true;
+  }
+  const coords = destinosCoords[destinoSelect.value];
+  if(destinoMarker) destinoMarker.remove();
+  if(coords) destinoMarker = L.marker(coords,{icon:taxiIcon}).addTo(map);
+});
+
+/* ============================ BOTÓN STRIPE ============================= */
+pagarBtn.addEventListener("click", async () => {
+  const selectedOption = destinoSelect.selectedOptions[0];
+  const precio = parseInt(selectedOption.dataset.price); // en céntimos
+  const destino = destinoSelect.value;
+
+  if (!origenCoords) {
+    alert("Selecciona tu lugar de origen en el mapa.");
+    return;
+  }
+
+  try {
+    const res = await fetch("/create-checkout-session", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        origin: origenInput.value,
+        originCoords: origenCoords,
+        destination: destino,
+        destinationCoords: destinosCoords[destino],
+        amount: precio
+      })
+    });
+
+    const data = await res.json();
+    if (data.url) {
+      window.location.href = data.url; // redirige a Stripe Checkout
+    } else {
+      alert("Error al crear la sesión de pago. Intenta de nuevo.");
+    }
+  } catch (err) {
+    console.error(err);
+    alert("Error de conexión con el servidor.");
+  }
+});
+
+
+/* ============================ VALIDACIÓN FECHA ============================= */
+document.getElementById("formReservado").addEventListener("submit", e=>{
+  e.preventDefault();
+  const hora = document.getElementById("hora").value;
+  const msg = document.getElementById("reservaMsg");
+
+  if(!origenCoords || !destinoSelect.value || !hora){
+    msg.textContent="⚠️ Completa todos los campos correctamente.";
+    msg.classList.add("error");
+    return;
+  }
+
+  const fecha = new Date(hora);
+  if(fecha < new Date()){
+    msg.textContent="⚠️ No puedes reservar para una fecha pasada.";
+    msg.classList.add("error");
+    return;
+  }
+
+  msg.textContent = `✅ Viaje programado:\nRecogida en "${origenInput.value}" → Destino "${destinoSelect.value}" a las ${fecha.toLocaleString()}.`;
+  msg.classList.remove("error");
+});
+</script>
+
+<footer class="footer-dark">
+  <div class="footer-container">
+    <div class="footer-col">
+      <h3 class="footer-logo">DonostiGo</h3>
+      <p>Soluciones de taxi en Donostia — transparencia y seguridad.</p>
+    </div>
+    <div class="footer-col">
+      <ul>
+        <li><a href="#">Servicios</a></li>
+        <li><a href="#">Precios</a></li>
+        <li><a href="#">Reservas</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <ul>
+        <li><a href="#">Soporte</a></li>
+        <li><a href="#">Centro de ayuda</a></li>
+        <li><a href="/donostigo/pdf/política_privacidad.pdf" target="_blank">Política de privacidad</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <ul>
+        <li><a href="#">Sobre nosotros</a></li>
+        <li><a href="#">Contacto</a></li>
+        <li><a href="#">Afiliados</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <hr>
+
+  <div class="footer-social">
+    <a href="#" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+    <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+    <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+    <a href="#" aria-label="Google"><i class="fab fa-google"></i></a>
+  </div>
+
+  <p class="footer-copy">© <span id="year"></span> DonostiGo. Todos los derechos reservados.</p>
+</footer>
+
+<script>
+document.getElementById("year").textContent = new Date().getFullYear();
+const navToggle = document.getElementById("navToggle");
+const navList = document.getElementById("primaryNav");
+if(navToggle && navList){
+  navToggle.addEventListener("click", ()=>{
+    const visible = navList.dataset.visible==="true";
+    navList.dataset.visible = visible?"false":"true";
+    navToggle.setAttribute("aria-expanded",!visible);
+  });
+}
+</script>
+</body>
+</html>
