@@ -8,7 +8,7 @@
   <link rel="icon" type="image/png" href="/donostigo/img optimizadas/taxi.webp">
 
   <style>
-    /* Estilos para asegurar que los botones de favoritos sean clicables */
+    /* --- TUS ESTILOS ORIGINALES --- */
     .btn-fav {
       cursor: pointer !important;
       position: relative;
@@ -27,6 +27,52 @@
     .btn-fav:hover { transform: scale(1.1); }
     .icon-heart { pointer-events: none; font-size: 1.5rem; }
     .service-card { position: relative; }
+
+    /* --- NUEVOS ESTILOS PARA LOS FILTROS --- */
+    .filter-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+      margin-bottom: 30px;
+      justify-content: center;
+      padding: 0 15px;
+    }
+
+    #searchInput, #categoryFilter {
+      padding: 12px 20px;
+      border: 1px solid #ddd;
+      border-radius: 25px;
+      font-size: 1rem;
+      outline: none;
+      transition: all 0.3s ease;
+    }
+
+    #searchInput {
+      flex: 1;
+      min-width: 250px;
+      max-width: 500px;
+    }
+
+    #categoryFilter {
+      cursor: pointer;
+      background-color: #fff;
+    }
+
+    #searchInput:focus, #categoryFilter:focus {
+      border-color: #ff4444;
+      box-shadow: 0 0 8px rgba(255, 68, 68, 0.2);
+    }
+
+    /* Mensaje de "No encontrado" */
+    .no-results {
+      text-align: center;
+      width: 100%;
+      padding: 30px;
+      font-size: 1.2rem;
+      color: #666;
+      display: none;
+      grid-column: 1 / -1; /* Para que ocupe todo el ancho si usas grid */
+    }
   </style>
 </head>
 <body>
@@ -57,6 +103,18 @@
   <main id="main" class="site-main container">
     <h1 class="section-title">Servicios</h1>
 
+    <div class="filter-container">
+      <input type="text" id="searchInput" placeholder="🔍 Buscar servicio (ej. aeropuerto, compartido...)" aria-label="Buscar servicio">
+      
+      <select id="categoryFilter" aria-label="Filtrar por categoría">
+        <option value="all">Todas las categorías</option>
+        <option value="standard">Taxi Estándar</option>
+        <option value="shared">Viaje Compartido</option>
+        <option value="airport">Aeropuerto</option>
+        <option value="accessible">Accesible / PMR</option>
+        <option value="scheduled">Programado</option>
+      </select>
+    </div>
     <section id="servicesList" class="services-grid" aria-live="polite">
       <section class="services-hero">
         <div class="overlay"></div>
@@ -182,12 +240,12 @@
   <script src="/donostigo/main.js"></script>
 
   <script>
-async function toggleFavorite(servicioId) {
-    // Capturamos el botón que se ha pulsado
-    const btn = event.currentTarget;
-    const heart = btn.querySelector('.icon-heart');
+    // --- FUNCIÓN DE FAVORITOS (ORIGINAL) ---
+    async function toggleFavorite(servicioId) {
+      const btn = event.currentTarget;
+      const heart = btn.querySelector('.icon-heart');
 
-    try {
+      try {
         const response = await fetch(`/api/favoritos/${servicioId}`, { 
           method: 'POST', 
           headers: { 'Content-Type': 'application/json' }
@@ -196,21 +254,70 @@ async function toggleFavorite(servicioId) {
         const data = await response.json();
 
         if (response.ok) {
-            // Comprobamos qué mensaje nos ha enviado Flask
-            if (data.message.includes("Añadido")) {
-                heart.innerText = "❤️"; // Cambia a rojo
-                console.log("Servicio guardado en AWS");
-            } else {
-                heart.innerText = "🤍"; // Vuelve a blanco
-                console.log("Servicio eliminado de AWS");
-            }
+          if (data.message.includes("Añadido")) {
+            heart.innerText = "❤️"; 
+            console.log("Servicio guardado en AWS");
+          } else {
+            heart.innerText = "🤍"; 
+            console.log("Servicio eliminado de AWS");
+          }
         } else {
-            console.error("Error en la respuesta del servidor");
+          console.error("Error en la respuesta del servidor");
         }
-    } catch (error) {
+      } catch (error) {
         console.error("Error de conexión con el backend:", error);
+      }
     }
-}
-</script>
+
+    // --- NUEVO SCRIPT DE FILTRADO ---
+    document.addEventListener("DOMContentLoaded", () => {
+      const searchInput = document.getElementById('searchInput');
+      const categoryFilter = document.getElementById('categoryFilter');
+      const serviceCards = document.querySelectorAll('.service-card');
+      const servicesList = document.getElementById('servicesList');
+
+      // Crear mensaje de "No encontrado"
+      const noResultsMsg = document.createElement('div');
+      noResultsMsg.className = 'no-results';
+      noResultsMsg.textContent = 'No hemos encontrado servicios con esos criterios 😔';
+      servicesList.appendChild(noResultsMsg);
+
+      function filterServices() {
+        const searchText = searchInput.value.toLowerCase();
+        const selectedCategory = categoryFilter.value;
+        let visibleCount = 0;
+
+        serviceCards.forEach(card => {
+          const title = card.querySelector('h2').textContent.toLowerCase();
+          const desc = card.querySelector('p').textContent.toLowerCase();
+          const type = card.getAttribute('data-type');
+
+          // Comprobar coincidencia de texto
+          const matchesSearch = title.includes(searchText) || desc.includes(searchText);
+          
+          // Comprobar coincidencia de categoría
+          const matchesCategory = selectedCategory === 'all' || type === selectedCategory;
+
+          if (matchesSearch && matchesCategory) {
+            card.style.display = ''; // Mostrar
+            visibleCount++;
+          } else {
+            card.style.display = 'none'; // Ocultar
+          }
+        });
+
+        // Mostrar mensaje si no hay resultados
+        if (visibleCount === 0) {
+          noResultsMsg.style.display = 'block';
+        } else {
+          noResultsMsg.style.display = 'none';
+        }
+      }
+
+      // Event Listeners
+      searchInput.addEventListener('input', filterServices);
+      categoryFilter.addEventListener('change', filterServices);
+    });
+  </script>
 </body>
 </html>
