@@ -50,5 +50,5 @@ def chat():
         return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
-    # Mantenemos host 0.0.0.0 y puerto 5001 para que sea accesible desde el servidor de Nazaret
-    app.run(host='0.0.0.0', port=5001, debug=True)
+    # Cambia 5001 por 5005 para evitar conflictos en el servidor compartido
+    app.run(host='0.0.0.0', port=5005, debug=True)
